@@ -1,0 +1,1 @@
+let Covid = artifacts.require("./Covid.sol")
