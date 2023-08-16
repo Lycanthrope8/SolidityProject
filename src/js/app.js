@@ -181,55 +181,63 @@ submitPatientInfo: function () {
   AllPatients: async function() {
     try {
         const instance = await App.contracts.PatientManagement.deployed();
-  
         const patientCount = await instance.patientCount();
-  
-        const allPatients = [];
-        for (let i = 1; i <= patientCount; i++) {
-            const patientValues = await instance.patients(i);
-  
-            const patient = {
-                id: patientValues[0].toNumber(),
-                patientAddress: patientValues[1],
-                name: patientValues[2],
-                age: patientValues[3].toNumber(),
-                gender: patientValues[4],
-                vaccineStatus: patientValues[5].toNumber(),
-                district: patientValues[6],
-                symptomsDetails: patientValues[7],
-                isDead: patientValues[8],
-                hasAddedInfo: patientValues[9]
-            };
-  
-            allPatients.push(patient);
-            console.log(allPatients)
-        }
-  
-        // Display patients in the HTML table
+
+        const vaccine = [
+            "NotVaccinated",
+            "OneDose",
+            "TwoDose"
+        ];
+
         const table = document.getElementById('patientTable');
-        for (const patient of allPatients) {
-            const row = table.insertRow();
+        const tbody = table.getElementsByTagName('tbody')[0];
+        tbody.innerHTML = ''; // Clear the table body before populating
+
+        for (let i = 0; i < patientCount; i++) {
+              //All the patients addresses are in patientAddresses Array
+            const patientAddress = await instance.patientAddresses(i);
+              //Collecting the data from patients struct through patientAdress
+            const patientValues = await instance.patients(patientAddress);
+              //storing them into the variables to show in the html table 
+            const id = patientValues[0].toNumber();
+            const address = patientValues[1];
+            const name = patientValues[2];
+            const age = patientValues[3].toNumber();
+            const gender = patientValues[4];
+            const vaccineStatus = vaccine[patientValues[5].toNumber()];
+            const district = patientValues[6];
+            const symptomsDetails = patientValues[7];
+            const isDead = patientValues[8];
+            const hasInfo = patientValues[9];
+              //Cells
+            const row = tbody.insertRow();
             const cellId = row.insertCell(0);
-            const cellName = row.insertCell(1);
-            const cellAge = row.insertCell(2);
-            const cellGender = row.insertCell(3);
-            const cellVaccineStatus = row.insertCell(4);
-            const cellDistrict = row.insertCell(5);
-            const cellSymptoms = row.insertCell(6);
-            
-            cellId.innerHTML = patient.id;
-            cellName.innerHTML = patient.name;
-            cellAge.innerHTML = patient.age;
-            cellGender.innerHTML = patient.gender;
-            cellVaccineStatus.innerHTML = patient.vaccineStatus;
-            cellDistrict.innerHTML = patient.district;
-            cellSymptoms.innerHTML = patient.symptomsDetails;
+            const cellAddress = row.insertCell(1);
+            const cellName = row.insertCell(2);
+            const cellAge = row.insertCell(3);
+            const cellGender = row.insertCell(4);
+            const cellVaccineStatus = row.insertCell(5);
+            const cellDistrict = row.insertCell(6);
+            const cellSymptoms = row.insertCell(7);
+            const cellIsDead = row.insertCell(8);
+            const cellHasInfo = row.insertCell(9);
+              //Writing through HTMl
+            cellId.innerHTML = id;
+            cellAddress.innerHTML = address;
+            cellName.innerHTML = name;
+            cellAge.innerHTML = age;
+            cellGender.innerHTML = gender;
+            cellVaccineStatus.innerHTML = vaccineStatus;
+            cellDistrict.innerHTML = district;
+            cellSymptoms.innerHTML = symptomsDetails;
+            cellIsDead.innerHTML = isDead ? 'Yes' : 'No';
+            cellHasInfo.innerHTML = hasInfo ? 'Yes' : 'No';
         }
-  
     } catch (error) {
         console.error(error);
     }
-  }
+}
+
   
 
 
@@ -242,12 +250,13 @@ submitPatientInfo: function () {
 
 
 
-// // Call the function when the page is ready
-// $(function () {
-//     $(window).load(function () {
-//         getAllPatients();
-//     });
-// });
+
+
+
+
+
+
+
 
 
 
@@ -260,6 +269,7 @@ $(function () {
   $(window).load(function () {
     App.init();
   });
+
 });
 
 
