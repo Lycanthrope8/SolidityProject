@@ -210,17 +210,34 @@ submitPatientInfo: function () {
             const isDead = patientValues[8];
             const hasInfo = patientValues[9];
               //Cells
-            const row = tbody.insertRow();
-            const cellId = row.insertCell(0);
-            const cellAddress = row.insertCell(1);
-            const cellName = row.insertCell(2);
-            const cellAge = row.insertCell(3);
-            const cellGender = row.insertCell(4);
-            const cellVaccineStatus = row.insertCell(5);
-            const cellDistrict = row.insertCell(6);
-            const cellSymptoms = row.insertCell(7);
-            const cellIsDead = row.insertCell(8);
-            const cellHasInfo = row.insertCell(9);
+              const row = tbody.insertRow();
+              const cellId = row.insertCell(0);
+              const cellAddress = row.insertCell(1);
+              const cellName = row.insertCell(2);
+              const cellAge = row.insertCell(3);
+              const cellGender = row.insertCell(4);
+              const cellVaccineStatus = row.insertCell(5);
+              const cellDistrict = row.insertCell(6);
+              const cellSymptoms = row.insertCell(7);
+              const cellIsDead = row.insertCell(8);
+              const cellHasInfo = row.insertCell(9);
+              const cellUpdate = row.insertCell(10); // cell for update button
+              const cellDelete = row.insertCell(11); // cell for delete button
+
+              // Creating update button
+            const updateButton = document.createElement('button');
+            updateButton.innerHTML = 'Update';
+            updateButton.addEventListener('click', () => this.handleUpdateClick(address));
+
+            // Creating delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.addEventListener('click', () => this.handleDeleteClick(address));
+            
+            // Append buttons to respective cells
+            cellUpdate.appendChild(updateButton);
+            cellDelete.appendChild(deleteButton);
+
               //Writing through HTMl
             cellId.innerHTML = id;
             cellAddress.innerHTML = address;
@@ -236,9 +253,27 @@ submitPatientInfo: function () {
     } catch (error) {
         console.error(error);
     }
-}
+},
 
-  
+handleDeleteClick: async function(patientAddress) {
+  console.log('Delete clicked for patient:', patientAddress);
+  const instance = await App.contracts.PatientManagement.deployed();
+  if (confirm(`Are you sure you want to delete ${patientAddress} information?`)) {
+    try {
+      const deleteTx = await instance.deletePatient(patientAddress);
+      console.log(`${patientAddress} deleted successfully. Transaction hash: ${deleteTx.tx}`);
+      App.AllPatients();
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+    }
+  } else {
+    console.log(`Deletion canceled`);
+  }
+},
+
+
+
+
 
 
 

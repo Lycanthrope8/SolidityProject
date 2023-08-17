@@ -90,6 +90,31 @@ contract PatientManagement {
         patient.symptomsDetails = _symptomsDetails;
         patient.isDead = _isDead;
     }
+    
+
+    function deletePatient(string memory _patientAddressString) public onlyAdmin {
+        address patientAddress = address(bytes20(bytes(_patientAddressString)));
+        // Deleting patient data from the patients mapping
+        delete patients[patientAddress];
+        
+        // Deleting patient address from the patientAddresses array
+        for (uint i = 0; i < patientAddresses.length; i++) {
+            if (patientAddresses[i] == patientAddress) {
+                for (uint j = i; j < patientAddresses.length - 1; j++) {
+                    patientAddresses[i] = patientAddresses[i + 1];
+                }
+                patientAddresses.pop();
+            }
+        }
+            patientCount--;
+        }
+
+
+    
+
+
+
+
 
     function getAllPatientAddresses() public view returns (address[] memory) {
         return patientAddresses;
