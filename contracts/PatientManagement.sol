@@ -14,7 +14,7 @@ contract PatientManagement {
         string district;
         string symptomsDetails;
         bool isDead;
-        bool hasAddedInfo;
+        bool hasInfo;
     }
 
     address public admin;
@@ -61,7 +61,7 @@ contract PatientManagement {
             district: _district,
             symptomsDetails: _symptomsDetails,
             isDead: false,
-            hasAddedInfo: true
+            hasInfo: true
         });
 
         patientAddresses.push(msg.sender); // Add the patient's address to the array
@@ -69,26 +69,30 @@ contract PatientManagement {
     }
 
     function updatePatient(
+        address _patientAddress,
+        string memory _name,
         uint _age,
         string memory _gender,
-        VaccineStatus _vaccineStatus,
+        uint _vaccineStatus,
         string memory _district,
         string memory _symptomsDetails,
-        bool _isDead
+        bool _isDead,
+        bool _hasInfo
     ) public onlyAdmin {
-        require(_age > 0, "Age must be greater than zero");
-        require(
-            uint(_vaccineStatus) <= uint(VaccineStatus.TwoDose),
-            "Invalid vaccine status"
-        );
+        // address patientAddress = address(bytes20(bytes(_patientAddress)));
+        require(patients[_patientAddress].id != 0, "Patient not found");
 
-        Patient storage patient = patients[msg.sender];
+        // Update patient data in the patients mapping
+        Patient storage patient = patients[_patientAddress];
+        patient.name = _name;
         patient.age = _age;
         patient.gender = _gender;
-        patient.vaccineStatus = _vaccineStatus;
+        patient.vaccineStatus = VaccineStatus(_vaccineStatus);
         patient.district = _district;
         patient.symptomsDetails = _symptomsDetails;
         patient.isDead = _isDead;
+        patient.hasInfo = _hasInfo;
+
     }
     
 
@@ -96,7 +100,6 @@ contract PatientManagement {
         address patientAddress = address(bytes20(bytes(_patientAddressString)));
         // Deleting patient data from the patients mapping
         delete patients[patientAddress];
-        
         // Deleting patient address from the patientAddresses array
         for (uint i = 0; i < patientAddresses.length; i++) {
             if (patientAddresses[i] == patientAddress) {
@@ -110,16 +113,9 @@ contract PatientManagement {
         }
 
 
-    
-
-
-
-
-
     function getAllPatientAddresses() public view returns (address[] memory) {
         return patientAddresses;
 }
-
 
     function getAllPatients() public view onlyAdmin returns (Patient[] memory) {
     Patient[] memory allPatients = new Patient[](patientCount);
