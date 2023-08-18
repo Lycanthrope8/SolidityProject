@@ -227,12 +227,12 @@ submitPatientInfo: function () {
               // Creating update button
             const updateButton = document.createElement('button');
             updateButton.innerHTML = 'Update';
-            updateButton.addEventListener('click', () => this.handleUpdateClick(address));
+            updateButton.addEventListener('click', () => this.UpdatePatient(address));
 
             // Creating delete button
             const deleteButton = document.createElement('button');
             deleteButton.innerHTML = 'Delete';
-            deleteButton.addEventListener('click', () => this.handleDeleteClick(address));
+            deleteButton.addEventListener('click', () => this.DeletePatient(address));
             
             // Append buttons to respective cells
             cellUpdate.appendChild(updateButton);
@@ -255,25 +255,7 @@ submitPatientInfo: function () {
     }
 },
 
-// handleDeleteClick: async function(patientAddress) {
-//   console.log('Delete clicked for patient:', patientAddress);
-  
-//   const instance = await App.contracts.PatientManagement.deployed();
-//   if (confirm(`Are you sure you want to delete ${patientAddress} information?`)) {
-//     try {
-//       // const deleteTx = await instance.deletePatient(patientAddress);
-//       console.log(`${patientAddress} deleted successfully. Transaction hash: ${deleteTx.tx}`);
-
-//       App.AllPatients();
-//     } catch (error) {
-//       console.error('Error deleting patient:', error);
-//     }
-//   } else {
-//     console.log(`Deletion canceled`);
-//   }
-// },
-
-handleDeleteClick: async function(patientAddress){
+DeletePatient: async function(patientAddress){
     console.log('Delete clicked for patient:', patientAddress);
     App.contracts.PatientManagement.deployed()
       .then(function (instance) {
