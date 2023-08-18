@@ -227,7 +227,7 @@ submitPatientInfo: function () {
               // Creating update button
             const updateButton = document.createElement('button');
             updateButton.innerHTML = 'Update';
-            updateButton.addEventListener('click', () => this.UpdatePatient(address));
+            updateButton.addEventListener('click', () => this.UpdatePatient(id,address,name,age,gender,patientValues[5].toNumber(),district,symptomsDetails,isDead,hasInfo));
 
             // Creating delete button
             const deleteButton = document.createElement('button');
@@ -254,6 +254,96 @@ submitPatientInfo: function () {
         console.error(error);
     }
 },
+
+UpdatePatient: async function(id,patientAddress,name,age,gender,vaccineStatus,district,symptomsDetails,isDead,hasInfo) {
+  const updateForm = document.getElementById('updateForm');
+  updateForm.style.display = 'block'; // Show the update form
+  patientAddressForHeader.innerHTML = `${patientAddress}` ; //Displaying public address of the updating patient
+
+//   const vaccine = [
+//     "NotVaccinated",
+//     "OneDose",
+//     "TwoDose"
+// ];
+  
+  // Fill the form with existing patient information
+  // const patient = await App.getAllPatients(patientAddress);
+  console.log("Filling the input fields with existing values");
+  console.log(vaccineStatus)
+  document.getElementById('updateName').value = name;
+  document.getElementById('updateAge').value = age;
+  document.getElementById('updateGender').value = gender;
+  document.getElementById('updateVaccineStatus').value = vaccineStatus;
+  document.getElementById('updateDistrict').value = district;
+  document.getElementById('updateSymptoms').value = symptomsDetails;
+  document.getElementById('updateDead').checked = isDead;
+  document.getElementById('updateHasInfo').checked = hasInfo;
+  console.log("Information Filled")
+
+
+  // Handle form submission
+  const updatePatientForm = document.getElementById('updatePatientForm');
+  updatePatientForm.onsubmit = async function(event) {
+      event.preventDefault(); 
+      const updatedName = document.getElementById('updateName').value;
+      const updatedAge = document.getElementById('updateAge').value;
+      const updatedGender = document.getElementById('updateGender').value;
+      const updatedVaccineStatus = document.getElementById('updateVaccineStatus').value;
+      const updatedDistrict = document.getElementById('updateDistrict').value;
+      const updatedSymptoms = document.getElementById('updateSymptoms').value;
+      const updatedDead = document.getElementById('updateDead').checked;
+      const updatedHasInfo = document.getElementById('updateHasInfo').checked;
+
+
+      // console.log(patientAddress,
+      //   updatedName,
+      //   updatedAge,
+      //   updatedGender,
+      //   updatedVaccineStatus,
+      //   updatedDistrict,
+      //   updatedSymptoms,
+      //   updatedDead,
+      //   updatedHasInfo)
+
+      // Call the Solidity function to update patient information
+      // const instance = await App.contracts.PatientManagement.deployed();
+      // await instance.updatePatient(
+      //     patientAddress,
+      //     updatedName,
+      //     updatedAge,
+      //     updatedGender,
+      //     updatedVaccineStatus,
+      //     updatedDistrict,
+      //     updatedSymptoms,
+      //     updatedDead,
+      //     updatedHasInfo
+      // );
+      console.log('Updating patient', patientAddress);
+      App.contracts.PatientManagement.deployed()
+        .then(function (instance) {
+            console.log('Updating Patient...');
+            return instance.updatePatient(patientAddress,updatedName,updatedAge,
+                              updatedGender,updatedVaccineStatus,updatedDistrict,
+                              updatedSymptoms,updatedDead,updatedHasInfo,{
+                from: App.account,
+                gas: '500000', // Adjust gas limit as needed
+            });
+        })
+        .then(function (result) {
+            console.log('Transaction Hash:', result.tx);
+            alert('Patient updated successfully');
+        })
+        .catch(function (error) {
+            console.error(error);
+            alert('Error updating patient information');
+        });
+    
+      // Hide the update form and refresh patient data
+      updateForm.style.display = 'none';
+      App.AllPatients();
+  };
+},
+
 
 DeletePatient: async function(patientAddress){
     console.log('Delete clicked for patient:', patientAddress);

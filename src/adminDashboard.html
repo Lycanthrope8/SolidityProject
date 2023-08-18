@@ -29,12 +29,38 @@
                     <th>Symptoms</th>
                     <th>Dead</th>
                     <th>HasInfo</th>
+                    <th>Action</th> <!-- New column for the update form -->
                 </tr>
             </thead>
             <tbody>
                 <!-- Table rows will be inserted here dynamically -->
             </tbody>
         </table>
+        
+        <!-- Update Form -->
+        <div id="updateForm" style="display: none;">
+            <h3>Update Patient Information for <span id="patientAddressForHeader"></span></h3>
+            <form id="updatePatientForm">
+                <input type="text" id="updateName" placeholder="Name">
+                <input type="number" id="updateAge" placeholder="Age">
+                <select id="updateGender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <select id="updateVaccineStatus">
+                    <option value="0">Not Vaccinated</option>
+                    <option value="1">One Dose</option>
+                    <option value="2">Two Dose</option>
+                </select>
+                <input type="text" id="updateDistrict" placeholder="District">
+                <input type="text" id="updateSymptoms" placeholder="Symptoms">
+                <label><input type="checkbox" id="updateDead"> Dead</label>
+                <label><input type="checkbox" id="updateHasInfo"> Has Info</label>
+                <button type="submit">Save</button>
+            </form>
+        </div>
+        
+        
         <button onclick="App.AllPatients()">Fetch Patients</button>
         
         <div class="logout">
