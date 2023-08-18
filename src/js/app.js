@@ -255,21 +255,43 @@ submitPatientInfo: function () {
     }
 },
 
-handleDeleteClick: async function(patientAddress) {
-  console.log('Delete clicked for patient:', patientAddress);
-  const instance = await App.contracts.PatientManagement.deployed();
-  if (confirm(`Are you sure you want to delete ${patientAddress} information?`)) {
-    try {
-      const deleteTx = await instance.deletePatient(patientAddress);
-      console.log(`${patientAddress} deleted successfully. Transaction hash: ${deleteTx.tx}`);
-      App.AllPatients();
-    } catch (error) {
-      console.error('Error deleting patient:', error);
-    }
-  } else {
-    console.log(`Deletion canceled`);
-  }
-},
+// handleDeleteClick: async function(patientAddress) {
+//   console.log('Delete clicked for patient:', patientAddress);
+  
+//   const instance = await App.contracts.PatientManagement.deployed();
+//   if (confirm(`Are you sure you want to delete ${patientAddress} information?`)) {
+//     try {
+//       // const deleteTx = await instance.deletePatient(patientAddress);
+//       console.log(`${patientAddress} deleted successfully. Transaction hash: ${deleteTx.tx}`);
+
+//       App.AllPatients();
+//     } catch (error) {
+//       console.error('Error deleting patient:', error);
+//     }
+//   } else {
+//     console.log(`Deletion canceled`);
+//   }
+// },
+
+handleDeleteClick: async function(patientAddress){
+    console.log('Delete clicked for patient:', patientAddress);
+    App.contracts.PatientManagement.deployed()
+      .then(function (instance) {
+          console.log('Deleting Patient...');
+          return instance.deletePatient(patientAddress,{
+              from: App.account,
+              gas: '500000', // Adjust gas limit as needed
+          });
+      })
+      .then(function (result) {
+          console.log('Transaction Hash:', result.tx);
+          alert('Patient deleted successfully');
+      })
+      .catch(function (error) {
+          console.error(error);
+          alert('Error deleting patient information');
+      });
+}
 
 
 
