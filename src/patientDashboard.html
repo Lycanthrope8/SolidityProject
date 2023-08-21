@@ -12,14 +12,34 @@
     <script src="js/app.js"></script>
 </head>
 <body>
+
     <h1>Patient Information</h1>
 
     <div class="logout">
         <button class="logout-button" onclick="App.logout()">Logout</button>
     </div>
-
-
-    <form id="patientForm">
+    <!-- <table id="patientTable" >
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Address</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Vaccine Status</th>
+                <th>District</th>
+                <th>Symptoms</th>
+                <th>Dead</th>
+                <th>HasInfo</th>
+                <th>Action</th> 
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table> -->
+   
+    <form id="patientForm"  >  <!-- style="display: none;" -->
         <label for="name">Name:</label>
         <input type="text" id="name" required><br>
         
@@ -47,8 +67,21 @@
         <textarea id="symptomsDetails" required></textarea><br>
         
         <button type="button" onclick="App.submitPatientInfo()">Submit</button>
+        <br>
+        <br>
+
 
     </form>
+    <br>
+    <div>
+        <button onclick="App.showAverageDeathRate()">Show Average Death Rate</button>
+        <button onclick="App.showHighestDistrictPatients()">Show District with Highest Patients</button>
+        <button onclick="App.showAgePercentages()">Show Age Percentages</button>
+    </div>
+            <div id="averageDeathRate"></div>
+            <div id="districtWithHighest"></div>
+            <div id="agePercentages"></div>
+                
     
 
 </body>

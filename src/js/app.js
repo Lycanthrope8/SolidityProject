@@ -27,6 +27,7 @@ App = {
   initContract: function () {
     $.getJSON("PatientManagement.json", function (patientmanagement) {
       // instantiate a new truffle contract from the artifact
+      // console.log('Received contract data:', patientmanagement);
       App.contracts.PatientManagement = TruffleContract(patientmanagement);
 
       // connect provider to interact with contract
@@ -81,6 +82,9 @@ App = {
       });
   },
 
+  
+  
+
 submitPatientInfo: function () {
   console.log('Submitting patient info...');
   const name = document.getElementById('name').value;
@@ -102,6 +106,8 @@ submitPatientInfo: function () {
       })
       .then(function (result) {
           console.log('Transaction Hash:', result.tx);
+          const signUpForm = document.getElementById('patientForm');
+          signUpForm.style.display = 'none'; // Hide the form
           alert('Patient information added successfully');
       })
       .catch(function (error) {
@@ -135,12 +141,25 @@ submitPatientInfo: function () {
       })
       .then(function(txHash){
         window.location.href="patientDashboard.html";
-        
-        console.log(txHash)
-      }).catch(function (error) {
+      })
+      .catch(function (error) {
         console.error(error);
       });
   },
+
+  // showInfo: async function() {
+  //   const ini = await App.init()
+  //   .then(function(ini){
+  //     console.log("Before Deploying...")
+  //     App.contracts.PatientManagement.deployed()
+  //     console.log("After Deploying...")
+
+  //   })
+  // },  
+  
+  
+  
+
 
   adminSignin: function () {
     App.contracts.PatientManagement.deployed()
@@ -260,14 +279,6 @@ UpdatePatient: async function(id,patientAddress,name,age,gender,vaccineStatus,di
   updateForm.style.display = 'block'; // Show the update form
   patientAddressForHeader.innerHTML = `${patientAddress}` ; //Displaying public address of the updating patient
 
-//   const vaccine = [
-//     "NotVaccinated",
-//     "OneDose",
-//     "TwoDose"
-// ];
-  
-  // Fill the form with existing patient information
-  // const patient = await App.getAllPatients(patientAddress);
   console.log("Filling the input fields with existing values");
   console.log(vaccineStatus)
   document.getElementById('updateName').value = name;
@@ -293,38 +304,25 @@ UpdatePatient: async function(id,patientAddress,name,age,gender,vaccineStatus,di
       const updatedSymptoms = document.getElementById('updateSymptoms').value;
       const updatedDead = document.getElementById('updateDead').checked;
       const updatedHasInfo = document.getElementById('updateHasInfo').checked;
+      let deathDate = 0;
+      if (updatedDead==true){
+          // Date object
+            const date = new Date();
+            let currentDay= String(date.getDate()).padStart(2, '0');
+            let currentMonth = String(date.getMonth()+1).padStart(2,"0");
+            let currentYear = date.getFullYear();
+            let currentDate = `${currentDay}${currentMonth}${currentYear}`; // displaying the date as DDMMYYYY 
+            deathDate = parseInt(currentDate);
+      };
 
-
-      // console.log(patientAddress,
-      //   updatedName,
-      //   updatedAge,
-      //   updatedGender,
-      //   updatedVaccineStatus,
-      //   updatedDistrict,
-      //   updatedSymptoms,
-      //   updatedDead,
-      //   updatedHasInfo)
-
-      // Call the Solidity function to update patient information
-      // const instance = await App.contracts.PatientManagement.deployed();
-      // await instance.updatePatient(
-      //     patientAddress,
-      //     updatedName,
-      //     updatedAge,
-      //     updatedGender,
-      //     updatedVaccineStatus,
-      //     updatedDistrict,
-      //     updatedSymptoms,
-      //     updatedDead,
-      //     updatedHasInfo
-      // );
       console.log('Updating patient', patientAddress);
+      console.log('DeathDate:' ,deathDate)
       App.contracts.PatientManagement.deployed()
         .then(function (instance) {
             console.log('Updating Patient...');
             return instance.updatePatient(patientAddress,updatedName,updatedAge,
                               updatedGender,updatedVaccineStatus,updatedDistrict,
-                              updatedSymptoms,updatedDead,updatedHasInfo,{
+                              updatedSymptoms,updatedDead,updatedHasInfo,deathDate,{
                 from: App.account,
                 gas: '500000', // Adjust gas limit as needed
             });
@@ -363,7 +361,50 @@ DeletePatient: async function(patientAddress){
           console.error(error);
           alert('Error deleting patient information');
       });
-}
+},
+
+showAverageDeathRate: function () {
+  App.contracts.PatientManagement.deployed()
+    .then(function (instance) {
+      return instance.averageDeathRate();
+    })
+    .then(function (result) {
+      console.log("Average Death Rate:", result);
+      // You can update the UI here with the result
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+},
+
+showHighestDistrictPatients: function () {
+  App.contracts.PatientManagement.deployed()
+    .then(function (instance) {
+      return instance.getDistrictWithMostPatients();
+    })
+    .then(function (result) {
+      console.log("Highest District Patients:", result);
+      // You can update the UI here with the result
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+},
+
+
+showAgePercentages: function () {
+  App.contracts.PatientManagement.deployed()
+    .then(function (instance) {
+      return instance.agePercentages();
+    })
+    .then(function (result) {
+      console.log("Age Percentages:", result);
+      // You can update the UI here with the result
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+},
 
 
 
@@ -378,19 +419,6 @@ DeletePatient: async function(patientAddress){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-  // Other functions...
 
 };
 
