@@ -11,7 +11,6 @@ App = {
     // if an ethereum provider instance is already provided by metamask
     const provider = window.ethereum;
     if (provider) {
-      // currently window.web3.currentProvider is deprecated for known security issues.
       // Therefore it is recommended to use window.ethereum instance instead
       App.webProvider = provider;
     } else {
@@ -20,6 +19,7 @@ App = {
       // specify default instance if no web3 instance provided
       App.webProvider = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
     }
+
 
     return App.initContract();
   },
@@ -33,22 +33,62 @@ App = {
       // connect provider to interact with contract
       App.contracts.PatientManagement.setProvider(App.webProvider);
 
-      return App.render();
+      App.listenForEvents();
+
+
+     return App.render();
     });
   },
 
   render: async function () {
     const loader = $("#loader");
     const content = $("#content");
-
+  
     loader.show();
     content.hide();
-
+  
     if (window.ethereum) {
       try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         App.account = accounts[0];
         $("#accountAddress").html("Your Account: " + App.account);
+  
+        // Checking if the account is an admin
+        const isAdmin = await App.checkAdminStatus(App.account);
+        if (isAdmin) {
+          $("#adminView").show();
+          $("#patientView").hide();
+          // Fetch and display all patients information
+          App.AllPatients();
+          App.showAverageDeathRate();
+          App.showHighestDistrictPatients();
+          App.showAgePercentages();
+        } else {
+          // Patient view: Show personal information or signup form
+          $("#adminView").hide();
+          $("#patientView").show();
+  
+          // Check if the account is registered as a patient
+          const isRegistered = await App.checkPatientRegistration(App.account);
+  
+          if (isRegistered) {
+            // Show patient information table and hide signup form
+            $("#personalTable").show();
+            $("#patientForm").hide();
+            const getPatientinfo = await App.getPatientInfo(App.account)
+            App.showAverageDeathRate();
+            App.showHighestDistrictPatients();
+            App.showAgePercentages();
+          } else {
+            // Show signup form and hide patient information table
+            $("#patientForm").show();
+            $("#personalTable").hide();
+          }
+        }
+  
+        loader.hide();
+        content.show();
+  
       } catch (error) {
         if (error.code === 4001) {
           // User rejected request
@@ -58,30 +98,33 @@ App = {
         console.error(error);
       }
     }
-
-    App.contracts.PatientManagement.deployed()
-      .then(function (instance) {
-        return instance.admin();
-      })
-      .then(function (adminAddress) {
-        if (adminAddress.toLowerCase() === App.account.toLowerCase()) {
-          // Show admin view
-          $("#adminView").show();
-          $("#patientView").hide();
-        } else {
-          // Show patient view
-          $("#adminView").hide();
-          $("#patientView").show();
-        }
-
-        loader.hide();
-        content.show();
-      })
-      .catch(function (error) {
-        console.warn(error);
-      });
   },
+  
 
+  checkAdminStatus: async function(account) {
+    try {
+      const instance = await App.contracts.PatientManagement.deployed();
+      const adminAddress = await instance.admin();
+      return adminAddress.toLowerCase() === account.toLowerCase();
+    } catch (error) {
+      console.error(error);
+      return false; 
+    }
+  },
+  
+  
+  checkPatientRegistration: async function (account) {
+    const instance = await App.contracts.PatientManagement.deployed();
+    const patientCount = await instance.patientCount();
+  
+    for (let i = 0; i < patientCount; i++) {
+      const patientAddress = await instance.patientAddresses(i);
+      if (patientAddress === account) {
+        return true;
+      }
+    }
+    return false;
+  },
   
   
 
@@ -107,7 +150,10 @@ submitPatientInfo: function () {
       .then(function (result) {
           console.log('Transaction Hash:', result.tx);
           const signUpForm = document.getElementById('patientForm');
-          signUpForm.style.display = 'none'; // Hide the form
+          const patientTable = document.getElementById('personalTable')
+          signUpForm.style.display = 'none'; // Hiding the form
+          patientTable.style.display = 'block'; // showing the table
+          
           alert('Patient information added successfully');
       })
       .catch(function (error) {
@@ -147,16 +193,7 @@ submitPatientInfo: function () {
       });
   },
 
-  // showInfo: async function() {
-  //   const ini = await App.init()
-  //   .then(function(ini){
-  //     console.log("Before Deploying...")
-  //     App.contracts.PatientManagement.deployed()
-  //     console.log("After Deploying...")
 
-  //   })
-  // },  
-  
   
   
 
@@ -195,6 +232,63 @@ submitPatientInfo: function () {
     App.account = '0x0';
     window.location.href = 'index.html';
   },
+
+  getPatientInfo: async function (patientAddress) {
+    try {
+        const instance = await App.contracts.PatientManagement.deployed();
+        const patientInfo = await instance.patients(patientAddress);
+
+        const vaccine = ["Not Vaccinated", "One Dose", "Two Dose"];
+
+        const tbody = document.getElementById('personalTable').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = ''; // Clear the table body before populating
+
+
+
+        const id = patientInfo[0].toNumber();
+        const address = patientInfo[1];
+        const name = patientInfo[2];
+        const age = patientInfo[3].toNumber();
+        const gender = patientInfo[4];
+        const vaccineStatus = vaccine[patientInfo[5].toNumber()];
+        if (patientInfo[5].toNumber()){
+          const certificate = document.getElementById('vaccineCertificate');
+          certificate.style.display = 'block'; // showing the table
+        }
+        const district = patientInfo[6];
+        const symptomsDetails = patientInfo[7];
+        const isDead = patientInfo[8];
+        const hasInfo = patientInfo[9];
+
+        console.log(id , address , name , age , gender , vaccineStatus , district , symptomsDetails , isDead , hasInfo)
+        
+        //Cells
+        const row = tbody.insertRow();
+        const cellId = row.insertCell(0);
+        const cellAddress = row.insertCell(1);
+        const cellName = row.insertCell(2);
+        const cellAge = row.insertCell(3);
+        const cellGender = row.insertCell(4);
+        const cellVaccineStatus = row.insertCell(5);
+        const cellDistrict = row.insertCell(6);
+        const cellSymptoms = row.insertCell(7);
+
+        //Writing through HTMl
+        cellId.innerHTML = id;
+        cellAddress.innerHTML = address;
+        cellName.innerHTML = name;
+        cellAge.innerHTML = age;
+        cellGender.innerHTML = gender;
+        cellVaccineStatus.innerHTML = vaccineStatus;
+        cellDistrict.innerHTML = district;
+        cellSymptoms.innerHTML = symptomsDetails;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+},
+
+
 
  
   AllPatients: async function() {
@@ -369,8 +463,8 @@ showAverageDeathRate: function () {
       return instance.averageDeathRate();
     })
     .then(function (result) {
-      console.log("Average Death Rate:", result);
-      // You can update the UI here with the result
+      const averageDeathRateDiv = document.getElementById("averageDeathRate");
+      averageDeathRateDiv.innerHTML = "<b>Average Death Rate: </b>" + result;
     })
     .catch(function (error) {
       console.error(error);
@@ -383,14 +477,13 @@ showHighestDistrictPatients: function () {
       return instance.getDistrictWithMostPatients();
     })
     .then(function (result) {
-      console.log("Highest District Patients:", result);
-      // You can update the UI here with the result
+      const districtWithHighestDiv = document.getElementById("districtWithHighest");
+      districtWithHighestDiv.innerHTML = "<b>District with Highest Patients: </b>" + result;
     })
     .catch(function (error) {
       console.error(error);
     });
 },
-
 
 showAgePercentages: function () {
   App.contracts.PatientManagement.deployed()
@@ -398,8 +491,8 @@ showAgePercentages: function () {
       return instance.agePercentages();
     })
     .then(function (result) {
-      console.log("Age Percentages:", result);
-      // You can update the UI here with the result
+      const agePercentagesDiv = document.getElementById("agePercentages");
+      agePercentagesDiv.innerHTML = "<b>Age Percentages: </b>" + result;
     })
     .catch(function (error) {
       console.error(error);
@@ -407,19 +500,46 @@ showAgePercentages: function () {
 },
 
 
+listenForEvents: function() {
+  App.contracts.PatientManagement.deployed()
+  .then(function(instance) {
+      // Listening for events related to averageDeathRate
+      instance.AverageDeathRateChanged({}, {
+          fromBlock: 0,
+          toBlock: "latest"
+      })
+      .watch(function(err, event) {
+          console.log("Average Death Rate Changed:", event);
+          // Update the UI with the new average death rate
+          App.showAverageDeathRate();
+      });
 
+      // Listening for events related to agePercentages
+      instance.AgePercentagesChanged({}, {
+          fromBlock: 0,
+          toBlock: "latest"
+      })
+      .watch(function(err, event) {
+          console.log("Age Percentages Changed:", event);
+          // Update the UI with the new age percentages
+          App.showAgePercentages();
+      });
 
-
-
-
-
-
-
-
-
-
-
-
+      // Listening for events related to getDistrictWithMostPatients
+      instance.DistrictWithMostPatientsChanged({}, {
+          fromBlock: 0,
+          toBlock: "latest"
+      })
+      .watch(function(err, event) {
+          console.log("District With Most Patients Changed:", event);
+          // Update the UI with the new district with most patients
+          App.showHighestDistrictPatients();
+      });
+  })
+  .catch(function(error) {
+      console.error(error);
+  });
+}
 };
 
 $(function () {

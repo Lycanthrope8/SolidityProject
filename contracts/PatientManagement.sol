@@ -5,6 +5,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 contract PatientManagement {
     enum VaccineStatus { NotVaccinated, OneDose, TwoDose }
 
+    event AverageDeathRateChanged(string newAverageDeathRate);
+
+    event AgePercentagesChanged(string newAgePercentages);
+
+    event DistrictWithMostPatientsChanged(string newDistrictWithMostPatients);
+
     struct Patient {
         uint id;
         address patientAddress;
@@ -118,9 +124,13 @@ contract PatientManagement {
         patient.hasInfo = _hasInfo;
         patient.deathDate = _deathDate;
         
-        if (_deathDate>0 && _isDead == true){
+        if (_deathDate > 0 && _isDead == true) {
             deathCount++;
+            emit AverageDeathRateChanged(averageDeathRate()); 
+            emit AgePercentagesChanged(agePercentages()); 
+            emit DistrictWithMostPatientsChanged(getDistrictWithMostPatients()); 
         }
+
     }
     
 
@@ -152,7 +162,7 @@ contract PatientManagement {
         address patientAddress = patientAddresses[i];
         allPatients[i] = patients[patientAddress];
     }
-    return allPatients;
+    return allPatients; 
 }
 
 /////////////////////////////Average Death Rate 
@@ -243,7 +253,5 @@ function agePercentages() public view returns (string memory) {
 
     return percentages;
 }
-
-
 
 }

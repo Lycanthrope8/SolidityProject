@@ -11,77 +11,74 @@
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
 </head>
-<body>
+<body style="margin: 0;">
+    <div style="display: block;">
+        <h1>Patient Information</h1>
 
-    <h1>Patient Information</h1>
+        
 
-    <div class="logout">
-        <button class="logout-button" onclick="App.logout()">Logout</button>
-    </div>
-    <!-- <table id="patientTable" >
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Address</th>
-                <th>Name</th>
-                <th>Age</th>
-                <th>Gender</th>
-                <th>Vaccine Status</th>
-                <th>District</th>
-                <th>Symptoms</th>
-                <th>Dead</th>
-                <th>HasInfo</th>
-                <th>Action</th> 
-            </tr>
-        </thead>
-        <tbody>
+        <form id="patientForm"  >  <!-- style="display: none;" -->
+            <label for="name">Name:</label>
+            <input type="text" id="name" required><br>
             
-        </tbody>
-    </table> -->
-   
-    <form id="patientForm"  >  <!-- style="display: none;" -->
-        <label for="name">Name:</label>
-        <input type="text" id="name" required><br>
-        
-        <label for="age">Age:</label>
-        <input type="number" id="age" required><br>
-        
-        <label for="gender">Gender:</label>
-        <select id="gender" required>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-        </select><br>
-        
-        <label for="vaccineStatus">Vaccine Status:</label>
-        <select id="vaccineStatus" required>
-            <option value="0">Not Vaccinated</option>
-            <option value="1">One Dose</option>
-            <option value="2">Two Dose</option>
-        </select><br>
-        
-        <label for="district">District:</label>
-        <input type="text" id="district" required><br>
-        
-        <label for="symptomsDetails">Symptoms Details:</label>
-        <textarea id="symptomsDetails" required></textarea><br>
-        
-        <button type="button" onclick="App.submitPatientInfo()">Submit</button>
-        <br>
-        <br>
+            <label for="age">Age:</label>
+            <input type="number" id="age" required><br>
+            
+            <label for="gender">Gender:</label>
+            <select id="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select><br>
+            
+            <label for="vaccineStatus">Vaccine Status:</label>
+            <select id="vaccineStatus" required>
+                <option value="0">Not Vaccinated</option>
+                <option value="1">One Dose</option>
+                <option value="2">Two Dose</option>
+            </select><br>
+            
+            <label for="district">District:</label>
+            <input type="text" id="district" required><br>
+            
+            <label for="symptomsDetails">Symptoms Details:</label>
+            <textarea id="symptomsDetails" required></textarea><br>
+            
+            <button type="button" onclick="App.submitPatientInfo()">Submit</button>
+            <br>
+            <br>
+        </form>
 
+        <table id="personalTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Address</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Vaccine Status</th>
+                    <th>District</th>
+                    <th>Symptoms</th>
+                </tr>
+            </thead>
+            <tbody>
+               <!--  -->
+            </tbody>
+        </table>
+        <button id="vaccineCertificate" style="display: none;">Download the Vaccine Certificate</button>
 
-    </form>
-    <br>
-    <div>
-        <button onclick="App.showAverageDeathRate()">Show Average Death Rate</button>
-        <button onclick="App.showHighestDistrictPatients()">Show District with Highest Patients</button>
-        <button onclick="App.showAgePercentages()">Show Age Percentages</button>
-    </div>
+        <div class="logout">
+            <button class="logout-button" onclick="App.logout()">Logout</button>
+        </div>
+        
+
+        <br>
+        <h1>Covid Update</h1>
             <div id="averageDeathRate"></div>
             <div id="districtWithHighest"></div>
             <div id="agePercentages"></div>
-                
+    </div>       
     
 
 </body>
