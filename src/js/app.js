@@ -251,7 +251,7 @@ submitPatientInfo: function () {
         const age = patientInfo[3].toNumber();
         const gender = patientInfo[4];
         const vaccineStatus = vaccine[patientInfo[5].toNumber()];
-        if (patientInfo[5].toNumber()){
+        if (patientInfo[5].toNumber()>1){
           const certificate = document.getElementById('vaccineCertificate');
           certificate.style.display = 'block'; // showing the table
         }
@@ -484,6 +484,11 @@ showHighestDistrictPatients: function () {
       console.error(error);
     });
 },
+certificatePage: function() {
+  // Replace 'certificate.html' with the actual URL of the certificate page
+  window.location.href = 'certificate.html';
+},
+
 
 showAgePercentages: function () {
   App.contracts.PatientManagement.deployed()
