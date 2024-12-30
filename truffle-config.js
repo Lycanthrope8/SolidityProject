@@ -5,17 +5,15 @@ module.exports = {
     development: {
       host: "127.0.0.1",
       port: 8545,
-      network_id: "*" // Match any network id
+      network_id: "*",
+      gas: 6721975, // Adjust this number based on your contract's needs
     },
-    develop: {
-      port: 8545
-    }
   },
-  // Configure your compilers
- compilers: {
-   solc: {
-     version: "0.8.20",    // Fetch exact version from solc-bin 
-   }
- }
 
+  // Configure your compilers
+  compilers: {
+    solc: {
+      version: "0.8.13", // Fetch exact version from solc-bin
+    },
+  },
 };

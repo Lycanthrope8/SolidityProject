@@ -1,8 +1,7 @@
 // requiring the contract
-var PatientManagement  = artifacts.require("./PatientManagement.sol");
+const PatientManagement = artifacts.require("../contracts/PatientManagement.sol");
 
-// exporting as module 
- module.exports = function(deployer) {
-  deployer.deploy(PatientManagement);
+ module.exports = function (deployer) {
+   deployer.deploy(PatientManagement);
  };
 
