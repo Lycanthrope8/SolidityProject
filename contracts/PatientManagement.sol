@@ -7,6 +7,7 @@ contract PatientManagement {
     event AverageDeathRateChanged(string newAverageDeathRate);
     event AgePercentagesChanged(string newAgePercentages);
     event DistrictWithMostPatientsChanged(string newDistrictWithMostPatients);
+    event MedianAgeUpdated(uint medianAge);
 
     struct Patient {
         uint id;
@@ -86,36 +87,45 @@ contract PatientManagement {
     }
 
     function updatePatient(
-        address _patientAddress,
-        string memory _name,
-        uint _age,
-        string memory _gender,
-        uint _vaccineStatus,
-        string memory _district,
-        string memory _symptomsDetails,
-        bool _isDead,
-        bool _hasInfo,
-        uint _deathDate
-    ) public onlyAdmin {
-        require(patients[_patientAddress].id != 0, "Patient not found");
-        Patient storage patient = patients[_patientAddress];
-        patient.name = _name;
-        patient.age = _age;
-        patient.gender = _gender;
-        patient.vaccineStatus = VaccineStatus(_vaccineStatus);
-        patient.district = _district;
-        patient.symptomsDetails = _symptomsDetails;
-        patient.isDead = _isDead;
-        patient.hasInfo = _hasInfo;
-        patient.deathDate = _deathDate;
+    address _patientAddress,
+    string memory _name,
+    uint _age,
+    string memory _gender,
+    VaccineStatus _vaccineStatus,
+    string memory _district,
+    string memory _symptomsDetails,
+    bool _isDead,
+    bool _hasInfo,
+    uint _deathDate
+) public onlyAdmin {
+    require(patients[_patientAddress].id != 0, "Patient not found");
+    require(!patients[_patientAddress].isDead, "Cannot modify a deceased patient");
 
-        if (_deathDate > 0 && _isDead == true) {
-            deathCount++;
-            emit AverageDeathRateChanged(averageDeathRate());
-            emit AgePercentagesChanged(agePercentages());
-            emit DistrictWithMostPatientsChanged(getDistrictWithMostPatients());
-        }
+    Patient storage patient = patients[_patientAddress];
+    patient.name = _name;
+    patient.age = _age;
+    patient.gender = _gender;
+    patient.vaccineStatus = _vaccineStatus;
+    patient.district = _district;
+    patient.symptomsDetails = _symptomsDetails;
+    patient.hasInfo = _hasInfo;
+
+    // Ensuring that once a patient is marked as dead, it cannot be reversed
+    if (_isDead) {
+        patient.isDead = true;
+        patient.deathDate = _deathDate;
+        deathCount++;
     }
+
+    // Emit events only if the status is marked as deceased
+    if (patient.isDead) {
+        emit AverageDeathRateChanged(averageDeathRate());
+        emit AgePercentagesChanged(agePercentages());
+        emit DistrictWithMostPatientsChanged(getDistrictWithMostPatients());
+    }
+    updateMedianAge();
+}
+
 
     function deletePatient(string memory _patientAddressString) public onlyAdmin {
         address patientAddress = address(bytes20(bytes(_patientAddressString)));
@@ -274,11 +284,45 @@ struct Appointment {
 
 
 
-    function getAllAppointments() external view returns (Appointment[] memory) {
-        Appointment[] memory allAppointments = new Appointment[](nextAppointmentId - 1);
-        for (uint256 i = 1; i < nextAppointmentId; i++) {
-            allAppointments[i - 1] = appointments[i];
-        }
-        return allAppointments;
+    function getMedianAge() public view returns (uint) {
+    uint numPatients = patientAddresses.length; // Renamed variable to avoid shadowing
+    uint[] memory ages = new uint[](numPatients);
+    for (uint i = 0; i < numPatients; i++) {
+        ages[i] = patients[patientAddresses[i]].age;
     }
+    sortAges(ages, 0, numPatients - 1);
+    uint middleIndex = numPatients / 2;
+    if (numPatients % 2 != 0) {
+        return ages[middleIndex];
+    } else {
+        return (ages[middleIndex - 1] + ages[middleIndex]) / 2;
+    }
+}
+    // Helper function to perform quicksort on the ages array
+    function sortAges(uint[] memory arr, uint left, uint right) internal pure {
+        uint i = left;
+        uint j = right;
+        if (i == j) return;
+        uint pivot = arr[left + (right - left) / 2];
+        while (i <= j) {
+            while (arr[i] < pivot) i++;
+            while (pivot < arr[j]) j--;
+            if (i <= j) {
+                (arr[i], arr[j]) = (arr[j], arr[i]);
+                i++;
+                j--;
+            }
+        }
+        if (left < j)
+            sortAges(arr, left, j);
+        if (i < right)
+            sortAges(arr, i, right);
+    }
+
+    function updateMedianAge() internal {
+        uint medianAge = getMedianAge();
+        emit MedianAgeUpdated(medianAge);
+    }
+    
+
 }

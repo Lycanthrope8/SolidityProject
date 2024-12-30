@@ -65,6 +65,7 @@ App = {
           App.showAverageDeathRate();
           App.showHighestDistrictPatients();
           App.showAgePercentages();
+          App.showMedianAge();
         } else {
           // Patient view: Show personal information or signup form
           $("#adminView").hide();
@@ -81,6 +82,7 @@ App = {
             App.showAverageDeathRate();
             App.showHighestDistrictPatients();
             App.showAgePercentages();
+            App.showMedianAge();
           } else {
             // Show signup form and hide patient information table
             $("#patientForm").show();
@@ -369,29 +371,27 @@ App = {
       });
   },
 
-  loadDoctorAppointments : function (doctorAddress) {
+  loadDoctorAppointments: function (doctorAddress) {
     App.contracts.PatientManagement.deployed()
-        .then(function (instance) {
-            return instance.getAppointmentsByDoctor(doctorAddress);
-        })
-        .then(function (results) {
-            let [ids, patients, dateTimes] = results;
-            let appointmentsList = $("#doctorAppointments");
-            appointmentsList.empty(); // Clear previous entries
+      .then(function (instance) {
+        return instance.getAppointmentsByDoctor(doctorAddress);
+      })
+      .then(function (results) {
+        let [ids, patients, dateTimes] = results;
+        let appointmentsList = $("#doctorAppointments");
+        appointmentsList.empty(); // Clear previous entries
 
-            for (let i = 0; i < ids.length; i++) {
-                let dateTime = new Date(dateTimes[i] * 1000).toLocaleString();
-                let appointmentEntry = `<div>Appointment ID: ${ids[i]} - Patient: ${patients[i]} - Date: ${dateTime}</div>`;
-                appointmentsList.append(appointmentEntry);
-            }
-        })
-        .catch(function (err) {
-            console.error("Error loading doctor appointments: ", err.message);
-            alert("Error loading appointments: " + err.message);
-        });
-},
-
-
+        for (let i = 0; i < ids.length; i++) {
+          let dateTime = new Date(dateTimes[i] * 1000).toLocaleString();
+          let appointmentEntry = `<div>Appointment ID: ${ids[i]} - Patient: ${patients[i]} - Date: ${dateTime}</div>`;
+          appointmentsList.append(appointmentEntry);
+        }
+      })
+      .catch(function (err) {
+        console.error("Error loading doctor appointments: ", err.message);
+        alert("Error loading appointments: " + err.message);
+      });
+  },
 
   logout: function () {
     // Clear the current user account and redirect to index.html
@@ -553,6 +553,15 @@ App = {
     }
   },
 
+  checkDeathStatus: function () {
+    const isDeadCheckbox = document.getElementById("updateDead");
+    if (isDeadCheckbox.checked) {
+      isDeadCheckbox.disabled = true; // Disable the checkbox if it's checked
+    } else {
+      isDeadCheckbox.disabled = false; // Enable if it's not checked (for new entries or alive patients)
+    }
+  },
+
   UpdatePatient: async function (
     id,
     patientAddress,
@@ -641,6 +650,7 @@ App = {
       updateForm.style.display = "none";
       App.AllPatients();
     };
+    this.checkDeathStatus();
   },
 
   DeletePatient: async function (patientAddress) {
@@ -712,6 +722,18 @@ App = {
       });
   },
 
+  showMedianAge: function () {
+    App.contracts.PatientManagement.deployed().then(function (instance) {
+        return instance.getMedianAge.call();
+    }).then(function (result) {
+        const medianAgeDisplayDiv = document.getElementById("medianAgeDisplay");
+        medianAgeDisplayDiv.innerHTML = "<b>Median Age: </b>" + result;
+    }).catch(function (err) {
+        console.error("Error fetching median age: ", err.message);
+    });
+  },
+
+
   listenForEvents: function () {
     App.contracts.PatientManagement.deployed()
       .then(function (instance) {
@@ -759,6 +781,26 @@ App = {
             // Update the UI with the new district with most patients
             App.showHighestDistrictPatients();
           });
+          instance
+            .MedianAgeUpdated(
+              {},
+              {
+                fromBlock: 0,
+                toBlock: "latest",
+              }
+            )
+            .watch(function (error, event) {
+              if (!error) {
+                console.log("Median Age Updated:", event);
+                // Update the UI with the new median age
+                App.showMedianAge(event.args.medianAge);
+              } else {
+                console.error(
+                  "Error listening for MedianAgeUpdated events",
+                  error
+                );
+              }
+            });
       })
       .catch(function (error) {
         console.error(error);
