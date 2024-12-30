@@ -23,6 +23,7 @@ contract PatientManagement {
     }
 
     address public admin;
+    mapping(address => bool) public doctors; // Added mapping to track doctors
     mapping(address => Patient) public patients;
     uint public patientCount;
     uint public deathCount;
@@ -36,9 +37,12 @@ contract PatientManagement {
         _;
     }
 
-    constructor() {
-    admin = msg.sender; // The first account of Ganache becomes the admin
-}
+    constructor(address[] memory initialDoctors) {
+        admin = msg.sender; // The first account of Ganache becomes the admin
+        for (uint i = 0; i < initialDoctors.length; i++) {
+            doctors[initialDoctors[i]] = true;
+        }
+    }
 
     function adminSignin() public view returns (bool) {
         return msg.sender == admin;
