@@ -287,7 +287,7 @@ App = {
         .request({ method: "eth_requestAccounts" })
         .then(function (accounts) {
           // Assuming the first two accounts are designated as doctors
-          let doctors = [accounts[0], accounts[1]];
+          let doctors = [accounts[1], accounts[2]];
           let doctorSelectSchedule = $("#doctorSelectSchedule");
           doctorSelectSchedule.empty(); // Clear the dropdown before loading new values
 
@@ -313,7 +313,7 @@ App = {
         .request({ method: "eth_requestAccounts" })
         .then(function (accounts) {
           // Assuming the first two accounts are designated as doctors
-          let doctors = [accounts[0], accounts[1]]; // Use the first two accounts as doctor accounts
+          let doctors = [accounts[1], accounts[2]]; // Use the first two accounts as doctor accounts
           let doctorSelect = $("#doctorSelect");
           doctorSelect.empty(); // Clear the dropdown before loading new values
 
@@ -371,33 +371,26 @@ App = {
 
   loadDoctorAppointments : function (doctorAddress) {
     App.contracts.PatientManagement.deployed()
-      .then(function (instance) {
-        // Assuming getAppointmentsByDoctor returns an array of appointment objects
-        return instance.getAppointmentsByDoctor(doctorAddress);
-      })
-      .then(function (appointments) {
-        let appointmentsList = $("#doctorAppointments");
-        appointmentsList.empty(); // Clear previous entries
+        .then(function (instance) {
+            return instance.getAppointmentsByDoctor(doctorAddress);
+        })
+        .then(function (results) {
+            let [ids, patients, dateTimes] = results;
+            let appointmentsList = $("#doctorAppointments");
+            appointmentsList.empty(); // Clear previous entries
 
-        // Check if the appointments array is not empty and has properties
-        if (!appointments.length) {
-            appointmentsList.append("<p>No appointments found for this doctor.</p>");
-            return;
-        }
-
-        // Assuming each appointment is an object with properties id, patient, and dateTime
-        appointments.forEach(function (appointment) {
-          // Ensure each property is accessed correctly
-          let dateTime = new Date(appointment[2] * 1000).toLocaleString(); // Assuming dateTime is at index 2
-          let appointmentEntry = `<div>Appointment ID: ${appointment[0]} - Patient: ${appointment[1]} - Date: ${dateTime}</div>`; // Assuming id is at index 0 and patient at index 1
-          appointmentsList.append(appointmentEntry);
+            for (let i = 0; i < ids.length; i++) {
+                let dateTime = new Date(dateTimes[i] * 1000).toLocaleString();
+                let appointmentEntry = `<div>Appointment ID: ${ids[i]} - Patient: ${patients[i]} - Date: ${dateTime}</div>`;
+                appointmentsList.append(appointmentEntry);
+            }
+        })
+        .catch(function (err) {
+            console.error("Error loading doctor appointments: ", err.message);
+            alert("Error loading appointments: " + err.message);
         });
-      })
-      .catch(function (err) {
-        console.error("Error loading doctor appointments: ", err.message);
-        alert("Error loading appointments: " + err.message);
-      });
 },
+
 
 
   logout: function () {

@@ -256,14 +256,22 @@ struct Appointment {
         nextAppointmentId++;
     }
 
-    function getAppointmentsByDoctor(address doctor) public view returns (Appointment[] memory) {
-    uint256[] memory doctorAppointmentsIndexes = doctorAppointments[doctor];
-    Appointment[] memory results = new Appointment[](doctorAppointmentsIndexes.length);
-    for (uint i = 0; i < doctorAppointmentsIndexes.length; i++) {
-        results[i] = appointments[doctorAppointmentsIndexes[i]];
+ function getAppointmentsByDoctor(address doctor) public view returns (uint256[] memory, address[] memory, uint256[] memory) {
+    uint256[] memory ids = new uint256[](doctorAppointments[doctor].length);
+    address[] memory doctorAddresses = new address[](doctorAppointments[doctor].length); // Renamed to avoid shadowing
+    uint256[] memory dateTimes = new uint256[](doctorAppointments[doctor].length);
+
+    for (uint i = 0; i < doctorAppointments[doctor].length; i++) {
+        Appointment storage appointment = appointments[doctorAppointments[doctor][i]];
+        ids[i] = appointment.id;
+        doctorAddresses[i] = appointment.patient; // Use new variable name
+        dateTimes[i] = appointment.dateTime;
     }
-    return results;
+
+    return (ids, patientAddresses, dateTimes);
 }
+
+
 
 
     function getAllAppointments() external view returns (Appointment[] memory) {
