@@ -78,8 +78,28 @@
             <div id="averageDeathRate"></div>
             <div id="districtWithHighest"></div>
             <div id="agePercentages"></div>
-    </div>       
-    
+    </div>      
+
+    <div>
+        <form id="bookingForm">
+            <label for="doctorSelect">Choose a Doctor:</label>
+            <select id="doctorSelect">
+                <!-- Doctors will be populated here -->
+            </select><br>
+            <label for="dateTime">Date and Time for Appointment:</label>
+            <input type="datetime-local" id="dateTime" required><br>
+            <button type="button" onclick="App.bookAppointment()">Book Appointment</button>
+        </form>
+        <div id="bookingStatus"></div>
+
+        <h2>Doctor Appointment Schedule</h2>
+        <select id="doctorSelectSchedule" onchange="App.loadDoctorAppointments(this.value)">
+            <!-- Options will be dynamically filled with doctors -->
+        </select>
+
+        <div id="doctorAppointments"></div>
+
+    </div>
 
 </body>
 </html>

@@ -87,7 +87,8 @@ App = {
             $("#personalTable").hide();
           }
         }
-
+        App.loadDoctorsForSchedule();
+        App.loadDoctors();
         loader.hide();
         content.show();
       } catch (error) {
@@ -279,6 +280,125 @@ App = {
         console.error("Sign-in failed:", error.message);
       });
   },
+  loadDoctorsForSchedule: function () {
+    console.log("Loading doctors for schedule...");
+    if (window.ethereum) {
+      window.ethereum
+        .request({ method: "eth_requestAccounts" })
+        .then(function (accounts) {
+          // Assuming the first two accounts are designated as doctors
+          let doctors = [accounts[0], accounts[1]];
+          let doctorSelectSchedule = $("#doctorSelectSchedule");
+          doctorSelectSchedule.empty(); // Clear the dropdown before loading new values
+
+          doctors.forEach(function (doctor) {
+            doctorSelectSchedule.append(
+              `<option value="${doctor}">${doctor}</option>`
+            );
+            // console.log("Doctor added to schedule select:", doctor);
+          });
+        })
+        .catch(function (error) {
+          console.error("Error fetching accounts for schedule", error);
+        });
+    } else {
+      console.log("Ethereum provider not available for schedule.");
+    }
+  },
+
+  loadDoctors: function () {
+    // Check if Ethereum provider is available
+    if (window.ethereum) {
+      window.ethereum
+        .request({ method: "eth_requestAccounts" })
+        .then(function (accounts) {
+          // Assuming the first two accounts are designated as doctors
+          let doctors = [accounts[0], accounts[1]]; // Use the first two accounts as doctor accounts
+          let doctorSelect = $("#doctorSelect");
+          doctorSelect.empty(); // Clear the dropdown before loading new values
+
+          // Populate the select element with doctor accounts
+          doctors.forEach(function (doctor) {
+            doctorSelect.append(`<option value="${doctor}">${doctor}</option>`);
+          });
+        })
+        .catch(function (error) {
+          console.error("Error fetching accounts", error);
+        });
+    } else {
+      console.log("Ethereum provider not available.");
+    }
+  },
+
+  bookAppointment: function () {
+    const doctor = $("#doctorSelect").val();
+    const dateTime = new Date($("#dateTime").val()).getTime() / 1000; // Convert to Unix timestamp
+
+    // Ensure App.webProvider is initialized properly
+    if (!App.webProvider) {
+      alert("Web provider is not set. Check your MetaMask configuration.");
+      return;
+    }
+
+    // Ensure App.account is already fetched or fetch in this method
+    if (!App.account) {
+      alert("Account not connected. Please connect MetaMask.");
+      return;
+    }
+
+    // Fetch the PatientManagement contract instance
+    App.contracts.PatientManagement.deployed()
+      .then(function (instance) {
+        // Define the value to send with the transaction
+        const weiValue = "1000000000000000000"; // This is exactly 1 ETH in Wei
+
+        // Call the `bookAppointment` function on the contract
+        return instance.bookAppointment(doctor, dateTime, {
+          from: App.account,
+          value: weiValue,
+          gas: 500000,
+        });
+      })
+      .then(function (result) {
+        console.log("Appointment booked successfully!", result);
+        alert("Appointment booked successfully!");
+      })
+      .catch(function (err) {
+        console.error("Failed to book appointment.", err);
+        alert("Failed to book appointment.");
+      });
+  },
+
+  loadDoctorAppointments : function (doctorAddress) {
+    App.contracts.PatientManagement.deployed()
+      .then(function (instance) {
+        // Assuming getAppointmentsByDoctor returns an array of appointment objects
+        return instance.getAppointmentsByDoctor(doctorAddress);
+      })
+      .then(function (appointments) {
+        let appointmentsList = $("#doctorAppointments");
+        appointmentsList.empty(); // Clear previous entries
+
+        // Check if the appointments array is not empty and has properties
+        if (!appointments.length) {
+            appointmentsList.append("<p>No appointments found for this doctor.</p>");
+            return;
+        }
+
+        // Assuming each appointment is an object with properties id, patient, and dateTime
+        appointments.forEach(function (appointment) {
+          // Ensure each property is accessed correctly
+          let dateTime = new Date(appointment[2] * 1000).toLocaleString(); // Assuming dateTime is at index 2
+          let appointmentEntry = `<div>Appointment ID: ${appointment[0]} - Patient: ${appointment[1]} - Date: ${dateTime}</div>`; // Assuming id is at index 0 and patient at index 1
+          appointmentsList.append(appointmentEntry);
+        });
+      })
+      .catch(function (err) {
+        console.error("Error loading doctor appointments: ", err.message);
+        alert("Error loading appointments: " + err.message);
+      });
+},
+
 
   logout: function () {
     // Clear the current user account and redirect to index.html

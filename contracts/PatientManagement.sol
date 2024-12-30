@@ -42,6 +42,7 @@ contract PatientManagement {
         for (uint i = 0; i < initialDoctors.length; i++) {
             doctors[initialDoctors[i]] = true;
         }
+        nextAppointmentId = 1;
     }
 
     function adminSignin() public view returns (bool) {
@@ -229,5 +230,47 @@ function toString(uint256 value) internal pure returns (string memory) {
             "Young: ", youngPercentage, " %, ",
             "Elder: ", elderPercentage, " %"
         ));
+    }
+
+struct Appointment {
+        uint256 id;
+        address patient;
+        address doctor;  // In this context, doctor refers to an admin.
+        uint256 dateTime;
+        bool confirmed;
+    }
+
+    uint256 public nextAppointmentId;
+    mapping(uint256 => Appointment) public appointments;
+    mapping(address => uint256[]) private doctorAppointments;
+
+    event AppointmentBooked(uint256 indexed id, address indexed patient, address indexed doctor, uint256 dateTime);
+
+
+
+    function bookAppointment(address doctor, uint256 dateTime) external payable {
+        require(msg.value == 1 ether, "Booking requires exactly 1 ETH");
+        appointments[nextAppointmentId] = Appointment(nextAppointmentId, msg.sender, doctor, dateTime, false);
+        doctorAppointments[doctor].push(nextAppointmentId);
+        emit AppointmentBooked(nextAppointmentId, msg.sender, doctor, dateTime);
+        nextAppointmentId++;
+    }
+
+    function getAppointmentsByDoctor(address doctor) public view returns (Appointment[] memory) {
+    uint256[] memory doctorAppointmentsIndexes = doctorAppointments[doctor];
+    Appointment[] memory results = new Appointment[](doctorAppointmentsIndexes.length);
+    for (uint i = 0; i < doctorAppointmentsIndexes.length; i++) {
+        results[i] = appointments[doctorAppointmentsIndexes[i]];
+    }
+    return results;
+}
+
+
+    function getAllAppointments() external view returns (Appointment[] memory) {
+        Appointment[] memory allAppointments = new Appointment[](nextAppointmentId - 1);
+        for (uint256 i = 1; i < nextAppointmentId; i++) {
+            allAppointments[i - 1] = appointments[i];
+        }
+        return allAppointments;
     }
 }
